@@ -29,6 +29,6 @@ export const productsApi={
 };
 export const authApi={
  register:async(name,email,password)=>{if(!name.trim()||!email.trim()||password.length<8)apiError("Completá tus datos y una contraseña de 8 caracteres como mínimo.");const users=accounts();if(users.some(u=>u.email===email.trim().toLowerCase()))apiError("Ese correo ya está registrado en este navegador.");const user={id:Date.now(),name:name.trim(),email:email.trim().toLowerCase(),password,role:"user"};saveAccounts([...users,user]);return {ok:true}},
- login:async(email,password)=>{const user=accounts().find(u=>u.email===email.trim().toLowerCase()&&u.password===password);if(!user)apiError("Datos incorrectos. Registrate primero para probar el acceso.");return {token:"demo-local-session",user:publicUser(user)}},
+ login:async(email,password)=>{const user=(email.trim().toLowerCase()==="admin@demo.local"&&password==="Demo12345!")?{id:0,name:"Administrador Demo",email:"admin@demo.local",role:"admin"}:accounts().find(u=>u.email===email.trim().toLowerCase()&&u.password===password);if(!user)apiError("Datos incorrectos. Registrate primero para probar el acceso.");return {token:"demo-local-session",user:publicUser(user)}},
  me:async()=>apiError("Sesión de demostración: iniciá sesión nuevamente.")
 };
