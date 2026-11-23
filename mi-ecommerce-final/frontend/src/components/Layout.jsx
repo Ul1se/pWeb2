@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from "react";
 import {NavLink,Outlet,useNavigate} from "react-router-dom";
-import {ShoppingCart,Search,UserRound,LogOut,Home,ShoppingBag,Heart,History,Sun,Moon,ChevronDown,BookOpen,BookOpen} from "lucide-react";
+import {ShoppingCart,Search,UserRound,LogOut,Home,ShoppingBag,Heart,History,Sun,Moon,ChevronDown,BookOpen} from "lucide-react";
 import {useStore} from "../context/StoreContext";
 export default function Layout(){
  const {count,session,setSession}=useStore(),navigate=useNavigate();
