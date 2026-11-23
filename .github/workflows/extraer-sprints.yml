@@ -1,0 +1,35 @@
+name: Extraer sprints del ZIP
+on:
+  push:
+    paths:
+      - '.github/workflows/extraer-sprints.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  extraer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Extraer contenido del ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f pWeb-main.zip
+          mkdir -p /tmp/pweb-extraido
+          unzip -q pWeb-main.zip -d /tmp/pweb-extraido
+          find /tmp/pweb-extraido -maxdepth 2 -type d | head -25
+          if [ -d /tmp/pweb-extraido/pWeb-main ]; then
+            cp -a /tmp/pweb-extraido/pWeb-main/. ./
+          else
+            cp -a /tmp/pweb-extraido/. ./
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+          if ! git diff --cached --quiet; then
+            git commit -m "Extraer carpetas de sprints desde pWeb-main.zip"
+            git push
+          fi
