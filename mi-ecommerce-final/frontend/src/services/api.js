@@ -13,6 +13,9 @@ export const productsApi={
 export const authApi={
  login:(email,password)=>request("/auth/login",{method:"POST",body:JSON.stringify({email,password})}),
  register:(name,email,password)=>request("/auth/register",{method:"POST",body:JSON.stringify({name,email,password})}),
- me:token=>request("/auth/me",{token})
+ me:token=>request("/auth/me",{token}),
+ updateProfile:(data,token)=>request("/auth/profile",{method:"PUT",body:JSON.stringify(data),token})
 };
-export const ordersApi={create:(items,token)=>request("/orders",{method:"POST",body:JSON.stringify({items}),token}),all:token=>request("/orders",{token})};
+export const ordersApi={create:(items,token)=>request("/orders",{method:"POST",body:JSON.stringify({items}),token}),all:token=>request("/orders",{token}),details:(id,token)=>request("/orders/"+id,{token})};
+
+export const favoritesApi={all:token=>request("/favorites",{token}),add:(id,token)=>request("/favorites/"+id,{method:"POST",token}),remove:(id,token)=>request("/favorites/"+id,{method:"DELETE",token})};
