@@ -103,3 +103,6 @@ button,.button,.hero-cta{background:var(--dark);border-radius:25px}
 .cart-item .qty button{color:#1b2528!important;background:#eef1f1!important}
 .cart-item .remove-pill{background:#333b3e!important;color:#fff!important}
 @media(max-width:620px){.topbar nav .user-pill{font-size:.78rem!important;min-width:0;padding:8px 10px!important}.topbar nav .cart-nav{width:40px;height:40px}}
+
+.demo-banner{background:#e0f3ed;color:#14564e;border-bottom:1px solid #9acbc0;text-align:center;padding:8px 14px;font-size:.78rem;font-weight:700;letter-spacing:.02em}
+.demo-hint{background:#eaf5f2;border:1px solid #afd9cf;color:#174b44!important;padding:10px;border-radius:9px;font-size:.83rem;overflow-wrap:anywhere}
