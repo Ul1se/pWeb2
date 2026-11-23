@@ -1,9 +1,9 @@
 import {useMemo,useState} from "react";
 import {useSearchParams} from "react-router-dom";
-import {Laptop,Utensils,BottleWine,Shirt,Gamepad2,CarFront,Sofa,Gift} from "lucide-react";
+import {Laptop,Utensils,Wine,Shirt,Gamepad2,CarFront,Sofa,Gift} from "lucide-react";
 import ProductGrid from "../components/organisms/ProductGrid";
 import {useProducts} from "../hooks/useProducts";
-const categories=[["Electrónica",Laptop],["Alimentos",Utensils],["Bebidas",BottleWine],["Indumentaria",Shirt],["Juegos",Gamepad2],["Automotor",CarFront],["Hogar",Sofa],["Otros",Gift]];
+const categories=[["Electrónica",Laptop],["Alimentos",Utensils],["Bebidas",Wine],["Indumentaria",Shirt],["Juegos",Gamepad2],["Automotor",CarFront],["Hogar",Sofa],["Otros",Gift]];
 function CategoryStrip({selected,onSelect}){return <div className="category-strip">{categories.map(([name,Icon])=><button key={name} className={selected===name?"selected":""} onClick={()=>onSelect(selected===name?"Todas":name)}><Icon size={29}/><span>{name}</span></button>)}</div>}
 export default function Catalog(){
  const {products,loading,error,reload}=useProducts();const [params]=useSearchParams();const [category,setCategory]=useState("Todas");const query=(params.get("q")||"").trim().toLowerCase();
