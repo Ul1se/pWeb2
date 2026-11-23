@@ -15,9 +15,9 @@ export default function Cart(){
   catch(e){setError(e.message)}finally{setBusy(false)}
  }
  return <section className="cart-page"><Link className="breadcrumb" to="/">← Volver</Link><h1>Productos en tu carrito</h1>
- {confirmed?<div className="notice"><h2>¡Pedido confirmado!</h2><p>Pedido N.º {confirmed.id} · {money(confirmed.total)} puntos</p><Link className="button" to="/">Seguir comprando</Link></div>:
+ {confirmed?<div className="notice"><h2>¡Pedido confirmado!</h2><p>Pedido N.º {confirmed.id} · {money(confirmed.total)}</p><Link className="button" to="/">Seguir comprando</Link></div>:
  cart.length?<><div className="cart-items">{cart.map(p=><CartItem key={p.id} product={p} onChange={change} onRemove={remove}/>)}</div>
- <div className="cart-total"><span>Total de puntos</span><strong>{money(total)}</strong></div>
+ <div className="cart-total"><span>Total a pagar</span><strong>{money(total)}</strong></div>
  <div className="cart-checkout"><button onClick={checkout} disabled={busy}>{busy?"Confirmando...":"Confirmar pedido"}</button>
  {!session&&<small>Ingresá a tu cuenta para confirmar el pedido.</small>}{error&&<p role="alert" className="error-text">{error}</p>}</div></>:
  <div className="notice">Tu carrito está vacío. <Link to="/">Ver productos</Link></div>}</section>
