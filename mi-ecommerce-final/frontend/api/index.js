@@ -15,7 +15,7 @@ export default async function handler(req,res){
   res.setHeader("Cache-Control","no-store");
   if(!process.env.DATABASE_URL||!secret)return fail(res,503,"El servicio no está configurado.");
   const url = new URL(req.url,"https://localhost");
-  const route=url.pathname.replace(/^\/api\/?/,"").split("/").filter(Boolean);
+  const route=(url.searchParams.get("route")||url.pathname.replace(/^\/api\/?/,"")).split("/").filter(Boolean);
   try{
     if(route[0]==="health"&&req.method==="GET"){await sql`SELECT 1`;return res.json({ok:true,database:"connected"});}
     if(route[0]==="products"&&route.length===1&&req.method==="GET"){return res.json(await sql`SELECT p.id,p.name,p.description,p.price,p.stock,p.category_id,p.image,p.emoji,p.featured,c.name AS category FROM products p LEFT JOIN categories c ON c.id=p.category_id ORDER BY p.id`);}
