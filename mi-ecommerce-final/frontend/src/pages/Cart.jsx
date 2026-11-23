@@ -1,5 +1,24 @@
-import {Link} from "react-router-dom";
+import {useState} from "react";
+import {Link,useNavigate} from "react-router-dom";
 import {useStore} from "../context/StoreContext";
 import CartItem from "../components/organisms/CartItem";
 import {money} from "../components/ProductCard";
-export default function Cart(){const {cart,change,remove,total,clear}=useStore();return <section className="cart-page"><Link className="breadcrumb" to="/">← Volver</Link><h1>Productos en tu Carrito</h1>{cart.length?<><div className="cart-items">{cart.map(p=><CartItem key={p.id} product={p} onChange={change} onRemove={remove}/>)}</div><div className="cart-total"><span>Total de Puntos</span><strong>{money(total)}</strong></div><div className="cart-checkout"><button onClick={()=>{if(window.confirm("¿Confirmar pedido de demostración? No se realizará ningún cobro real.")){clear();window.alert("Pedido de demostración confirmado. ¡Gracias!")}}}>Confirmar pedido demo</button><small>Simulación académica: no se procesan pagos reales.</small></div></>:<div className="notice">Tu carrito está vacío. <Link to="/">Ver productos</Link></div>}</section>}
+import {ordersApi} from "../services/api";
+export default function Cart(){
+ const {cart,change,remove,total,clear,session}=useStore();
+ const [busy,setBusy]=useState(false),[error,setError]=useState(""),[confirmed,setConfirmed]=useState(null);
+ const navigate=useNavigate();
+ async function checkout(){
+  setError("");if(!session?.token){navigate("/login");return}
+  setBusy(true);
+  try{const order=await ordersApi.create(cart.map(p=>({id:p.id,quantity:p.quantity})),session.token);clear();setConfirmed(order)}
+  catch(e){setError(e.message)}finally{setBusy(false)}
+ }
+ return <section className="cart-page"><Link className="breadcrumb" to="/">← Volver</Link><h1>Productos en tu carrito</h1>
+ {confirmed?<div className="notice"><h2>¡Pedido confirmado!</h2><p>Pedido N.º {confirmed.id} · {money(confirmed.total)} puntos</p><Link className="button" to="/">Seguir comprando</Link></div>:
+ cart.length?<><div className="cart-items">{cart.map(p=><CartItem key={p.id} product={p} onChange={change} onRemove={remove}/>)}</div>
+ <div className="cart-total"><span>Total de puntos</span><strong>{money(total)}</strong></div>
+ <div className="cart-checkout"><button onClick={checkout} disabled={busy}>{busy?"Confirmando...":"Confirmar pedido"}</button>
+ {!session&&<small>Ingresá a tu cuenta para confirmar el pedido.</small>}{error&&<p role="alert" className="error-text">{error}</p>}</div></>:
+ <div className="notice">Tu carrito está vacío. <Link to="/">Ver productos</Link></div>}</section>
+}
