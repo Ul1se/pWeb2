@@ -316,3 +316,23 @@ button,.button,.hero-cta{background:var(--dark);border-radius:25px}
 :root[data-theme="dark"] .study-tab.active{background:#187b67!important;color:#fff!important}
 :root[data-theme="dark"] .study-architecture,:root[data-theme="dark"] .study-note{background:#26433d;color:#e1faf0;border-color:#426d5e}
 :root[data-theme="dark"] .study-architecture>div small,:root[data-theme="dark"] .study-architecture>span{color:#b8d2c8}
+
+/* Catálogo de productos: fotografía grande sobre blanco, estilo marketplace */
+.product-card{background:#fff;border:1px solid #e4e8eb;border-radius:14px;box-shadow:0 2px 12px #17243a0b;overflow:hidden}
+.product-card:hover{box-shadow:0 10px 30px #17243a20}
+.product-visual{height:250px;background:#fff!important;padding:19px;display:flex;align-items:center;justify-content:center}
+.product-visual img{width:100%;height:100%;object-fit:contain;object-position:center;border-radius:4px}
+.product-content{padding:14px 20px 23px}
+.product-content h3{font-size:1.04rem;line-height:1.42;font-weight:650;min-height:2.8em;margin:5px 0 12px}
+.product-points{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.product-points strong{font-size:1.65rem;letter-spacing:-.045em;font-weight:800;color:#17212c}
+.product-points small{font-size:.75rem;color:#6b7680;font-weight:700}
+.detail-image{background:#fff!important;padding:24px;display:flex;align-items:center;justify-content:center;min-height:420px}
+.detail-image img{width:100%;max-height:390px;object-fit:contain}
+.detail-price strong{font-size:2rem;letter-spacing:-.04em}
+.cart-icon{width:85px;height:85px;background:#fff!important;border:1px solid #e8e8e8;overflow:hidden}
+.cart-icon img{width:100%;height:100%;object-fit:contain;padding:6px}
+:root[data-theme="dark"] .product-visual,:root[data-theme="dark"] .detail-image,:root[data-theme="dark"] .cart-icon{background:#fff!important}
+:root[data-theme="dark"] .product-points strong{color:#f0f7f5}
+:root[data-theme="dark"] .product-points small{color:#b5cac6}
+@media(max-width:620px){.product-visual{height:195px;padding:11px}.product-content{padding:12px}.product-content h3{font-size:.92rem}.product-points strong{font-size:1.3rem}.detail-image{min-height:280px}}
