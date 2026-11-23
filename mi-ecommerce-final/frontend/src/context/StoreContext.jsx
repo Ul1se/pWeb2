@@ -1,9 +1,11 @@
 import {createContext,useContext,useEffect,useMemo,useState} from "react";
+import {authApi} from "../services/api";
 const StoreContext=createContext(null);
 const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}};
 export function StoreProvider({children}){
  const [cart,setCart]=useState(()=>read("pweb2-cart",[]));
- const [session,setSession]=useState(()=>read("pweb2-session",null));
+ const [session,setSession]=useState(()=>{const saved=read("pweb2-session",null);return saved?.token?.includes(".")?saved:null;});
+ useEffect(()=>{if(session?.token){authApi.me(session.token).catch(()=>setSession(null))}},[]);
  useEffect(()=>localStorage.setItem("pweb2-cart",JSON.stringify(cart)),[cart]);
  useEffect(()=>{if(session)localStorage.setItem("pweb2-session",JSON.stringify(session));else localStorage.removeItem("pweb2-session")},[session]);
  const add=product=>setCart(items=>{const existing=items.find(i=>i.id===product.id);return existing?items.map(i=>i.id===product.id?{...i,quantity:i.quantity+1}:i):[...items,{...product,quantity:1}]});
