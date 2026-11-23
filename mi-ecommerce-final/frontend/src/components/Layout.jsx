@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from "react";
 import {NavLink,Outlet,useNavigate} from "react-router-dom";
-import {ShoppingCart,Search,UserRound,LogOut,Home,ShoppingBag,Heart,History,Sun,Moon,ChevronDown} from "lucide-react";
+import {ShoppingCart,Search,UserRound,LogOut,Home,ShoppingBag,Heart,History,Sun,Moon,ChevronDown,BookOpen} from "lucide-react";
 import {useStore} from "../context/StoreContext";
 export default function Layout(){
  const {count,session,setSession}=useStore(),navigate=useNavigate();
@@ -12,7 +12,7 @@ export default function Layout(){
  return <div className="site-shell"><header className="topbar">
  <NavLink to="/" className="brand"><strong>Mi</strong>Ecommerce</NavLink>
  <form className="header-search" onSubmit={e=>{e.preventDefault();navigate("/?q="+encodeURIComponent(e.currentTarget.elements.q.value))}}><input name="q" placeholder="Buscar productos..." aria-label="Buscar productos"/><button type="submit" aria-label="Buscar"><Search size={20}/></button></form>
- <nav aria-label="Navegación"><NavLink className="cart-nav" to="/cart" aria-label="Ver carrito"><ShoppingCart size={22}/>{count>0&&<span className="count">{count}</span>}</NavLink>
+ <nav aria-label="Navegación"><NavLink className="study-nav-link" to="/estudiar"><BookOpen size={17}/>Guía de estudio</NavLink><NavLink className="cart-nav" to="/cart" aria-label="Ver carrito"><ShoppingCart size={22}/>{count>0&&<span className="count">{count}</span>}</NavLink>
  {session?<div className="profile-menu-wrap" ref={menuRef}><button className="profile-trigger" aria-expanded={open} aria-haspopup="menu" onClick={()=>setOpen(o=>!o)}>
  <span className="profile-avatar">{session.user?.avatar_url?<img src={session.user.avatar_url} alt="" onError={e=>e.currentTarget.style.display="none"}/>:<UserRound size={18}/>}</span><span className="profile-trigger-name">{session.user?.name||"Mi perfil"}</span><ChevronDown size={15}/></button>
  {open&&<div className="profile-dropdown" role="menu" aria-label="Menú de perfil">
