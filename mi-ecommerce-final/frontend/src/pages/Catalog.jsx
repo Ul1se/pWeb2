@@ -1,17 +1,13 @@
-import {useEffect,useMemo,useState} from "react";
-import {Link,useNavigate,useParams,Navigate} from "react-router-dom";
-import {Search,ArrowRight,ShoppingCart,Trash2,Minus,Plus,ShieldCheck} from "lucide-react";
-import ProductCard,{money} from "../components/ProductCard";
-import {useStore} from "../context/StoreContext";
-import {useProducts} from "../hooks/useProducts";
-import {authApi,productsApi} from "../services/api";
-import SearchBar from "../components/molecules/SearchBar";
+import {useMemo,useState} from "react";
+import {useSearchParams} from "react-router-dom";
+import {Laptop,Utensils,BottleWine,Shirt,Gamepad2,CarFront,Sofa,Gift} from "lucide-react";
 import ProductGrid from "../components/organisms/ProductGrid";
-function Catalog(){
- const {products,loading,error,reload}=useProducts();
- const [query,setQuery]=useState(""),[category,setCategory]=useState("Todas");
- const categories=["Todas",...new Set(products.map(p=>p.category).filter(Boolean))];
- const filtered=useMemo(()=>products.filter(p=>(category==="Todas"||p.category===category)&&[p.name,p.description].join(" ").toLowerCase().includes(query.toLowerCase())),[products,category,query]);
- return <><section className="hero"><div><span className="pill">TU TIENDA ONLINE</span><h1>Encontrá lo que <em>te gusta.</em></h1><p>Explorá productos, elegí tus favoritos y armá tu carrito. Todo desde una experiencia simple y moderna.</p><a href="#catalogo" className="hero-cta">Ver productos <ArrowRight size={18}/></a></div><div className="hero-art"><ShoppingCart size={110}/><span>SHOP</span></div></section><section id="catalogo" className="section"><div className="section-heading"><div><span className="eyebrow">NUESTRO CATÁLOGO</span><h2>Productos destacados</h2></div><span className="muted">{filtered.length} productos</span></div><div className="filters"><SearchBar value={query} onChange={setQuery}/><select aria-label="Filtrar por categoría" value={category} onChange={e=>setCategory(e.target.value)}>{categories.map(c=><option key={c}>{c}</option>)}</select></div>{loading?<div className="notice">Cargando productos desde la API...</div>:error?<div className="notice error">{error} <button onClick={reload}>Reintentar</button></div>:filtered.length?<ProductGrid products={filtered}/>:<div className="notice">No hay productos que coincidan con tu búsqueda.</div>}</section></>;
+import {useProducts} from "../hooks/useProducts";
+const categories=[["Electrónica",Laptop],["Alimentos",Utensils],["Bebidas",BottleWine],["Indumentaria",Shirt],["Juegos",Gamepad2],["Automotor",CarFront],["Hogar",Sofa],["Otros",Gift]];
+function CategoryStrip({selected,onSelect}){return <div className="category-strip">{categories.map(([name,Icon])=><button key={name} className={selected===name?"selected":""} onClick={()=>onSelect(selected===name?"Todas":name)}><Icon size={29}/><span>{name}</span></button>)}</div>}
+export default function Catalog(){
+ const {products,loading,error,reload}=useProducts();const [params]=useSearchParams();const [category,setCategory]=useState("Todas");const query=(params.get("q")||"").trim().toLowerCase();
+ const filtered=useMemo(()=>products.filter(p=>(category==="Todas"||String(p.category).toLowerCase()===category.toLowerCase())&&[p.name,p.description].join(" ").toLowerCase().includes(query)),[products,category,query]);
+ const recommended=filtered.filter(p=>p.featured);const first=recommended.length?recommended:filtered.slice(0,4);
+ return <><section className="catalog-top"><CategoryStrip selected={category} onSelect={setCategory}/></section><section className="promos"><div className="promo"><span>MI ECOMMERCE</span><h2>Beneficios para vos</h2><p>Encontrá tus productos favoritos y canjealos con puntos.</p></div><div className="promo promo-two"><span>OFERTAS</span><h2>Descubrí más</h2><p>Explorá las categorías y elegí lo que más te guste.</p></div></section><section className="section"><h2>Te puede interesar</h2>{loading?<div className="notice">Cargando productos...</div>:error?<div className="notice error">{error}<button onClick={reload}>Reintentar</button></div>:first.length?<ProductGrid products={first}/>:<div className="notice">No se encontraron productos.</div>}</section><section className="section"><h2>{query?"Resultados de búsqueda":"Los más pedidos"}</h2>{!loading&&!error&&(filtered.length?<ProductGrid products={filtered}/>:<div className="notice">No hay productos en esta categoría.</div>)}</section><CategoryStrip selected={category} onSelect={setCategory}/></>;
 }
-export default Catalog;
