@@ -1,9 +1,8 @@
-import {useEffect,useMemo,useState} from "react";
-import {Link,useNavigate,useParams,Navigate} from "react-router-dom";
-import {Search,ArrowRight,ShoppingCart,Trash2,Minus,Plus,ShieldCheck} from "lucide-react";
-import ProductCard,{money} from "../components/ProductCard";
+import {useEffect,useState} from "react";
+import {Link,useParams} from "react-router-dom";
+import {Package} from "lucide-react";
 import {useStore} from "../context/StoreContext";
-import {useProducts} from "../hooks/useProducts";
-import {authApi,productsApi} from "../services/api";
-function Detail(){const {id}=useParams(),[product,setProduct]=useState(null),[error,setError]=useState("");const {add}=useStore();useEffect(()=>{let alive=true;productsApi.all().then(items=>{if(alive){const found=items.find(p=>String(p.id)===id);if(found)setProduct(found);else setError("Producto no encontrado")}}).catch(e=>alive&&setError(e.message));return()=>{alive=false}},[id]);if(error)return <div className="notice error">{error}</div>;if(!product)return <div className="notice">Cargando producto...</div>;return <section className="section"><Link to="/">← Volver al catálogo</Link><div className="detail"><div className="product-visual large">{product.image?<img src={product.image} alt={product.name}/>:<ShoppingCart size={100}/>}</div><div><span className="eyebrow">{product.category}</span><h1>{product.name}</h1><p>{product.description}</p><h2>{money(product.price)}</h2><button onClick={()=>add(product)}><ShoppingCart size={18}/> Agregar al carrito</button></div></div></section>}
-export default Detail;
+import {productsApi} from "../services/api";
+import {money} from "../components/ProductCard";
+import ProductGrid from "../components/organisms/ProductGrid";
+export default function Detail(){const {id}=useParams(),[product,setProduct]=useState(null),[related,setRelated]=useState([]),[error,setError]=useState("");const {add}=useStore();useEffect(()=>{let active=true;productsApi.all().then(list=>{if(!active)return;const p=list.find(item=>String(item.id)===id);if(!p){setError("Producto no encontrado");return}setProduct(p);setRelated(list.filter(item=>item.id!==p.id).slice(0,4))}).catch(e=>active&&setError(e.message));return()=>{active=false}},[id]);if(error)return <div className="notice error">{error}</div>;if(!product)return <div className="notice">Cargando...</div>;return <><div className="breadcrumb"><Link to="/">← Volver al listado</Link><span>› {product.category}</span></div><div className="detail"><div className="detail-gallery"><div className="detail-image">{product.image?<img src={product.image} alt={product.name}/>:product.emoji?<span>{product.emoji}</span>:<Package size={100}/>}</div></div><aside className="detail-info"><h1>{product.name}</h1><div className="detail-price"><strong>{money(product.price)}</strong> PUNTOS</div><button onClick={()=>add(product)}>Agregar al Carrito</button><p>{product.description||"Producto disponible en MiEcommerce."}</p></aside></div><section className="section"><h2>También te puede interesar</h2><ProductGrid products={related}/></section></>}
