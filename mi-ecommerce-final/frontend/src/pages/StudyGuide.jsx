@@ -91,6 +91,57 @@ export default function StudyGuide(){
  <div className="study-architecture"><div><Monitor size={26}/><strong>Frontend</strong><small>React · Vite · Router</small></div><span>HTTP · JSON →</span><div><Server size={26}/><strong>Backend</strong><small>Node.js · API en Vercel</small></div><span>SQL →</span><div><Database size={26}/><strong>Base de datos</strong><small>PostgreSQL · Neon</small></div></div>
  <div className="study-subtabs"><Tab name="Frontend" active={layer==="frontend"} onClick={()=>setLayer("frontend")}/><Tab name="Backend" active={layer==="backend"} onClick={()=>setLayer("backend")}/><Tab name="Base de datos" active={layer==="database"} onClick={()=>setLayer("database")}/></div>
  <div className="study-mappings">{mappings[layer].map(([title,source,explain])=><article key={title}><span className="study-mapping-icon">{layer==="frontend"?<Monitor size={20}/>:layer==="backend"?<Server size={20}/>:<Database size={20}/>}</span><div><h3>{title}</h3><code>{source}</code><p>{explain}</p></div></article>)}</div>
+
+ <div className="study-section"><h3>Propuesta de evolución · WebSocket para el catálogo en tiempo real</h3>
+ <p><strong>En criollo:</strong> con fetch el navegador pregunta «¿qué productos hay?» y recibe una respuesta. Con WebSocket mantiene un canal abierto y el servidor puede avisar «cambió el stock del producto 7» sin esperar otra consulta.</p>
+ <p><strong>Por qué no elegimos el carrito:</strong> en esta versión el carrito se administra en StoreContext.jsx y localStorage, sin un fetch por cada cambio de cantidad. Convertirlo a WebSocket requeriría primero guardar carritos por usuario en el servidor. El catálogo sí tiene una consulta HTTP clara para tomar como punto de partida.</p>
+ <h3>1. Código HTTP que ya existe</h3>
+ <pre className="study-code">{`// src/hooks/useProducts.js (fragmento real)
+const reload = useCallback(async () => {
+  setLoading(true);
+  setError("");
+  try {
+    setProducts(await productsApi.all());
+  } catch (e) {
+    setError(e.message);
+  } finally {
+    setLoading(false);
+  }
+}, []);
+useEffect(() => { reload(); }, [reload]);`}</pre>
+ <p><strong>Qué ocurre:</strong> productsApi.all() usa fetch para llamar a GET /api/products. El servidor devuelve JSON y React actualiza la grilla. Si otro usuario modifica el catálogo después, la pantalla no se entera sola.</p>
+ <h3>2. Ejemplo de cliente WebSocket (propuesto, todavía no implementado)</h3>
+ <pre className="study-code">{`// Ejemplo educativo de un hook con WebSocket
+useEffect(() => {
+  // Conexión a un servidor persistente de WebSockets
+  const socket = new WebSocket(import.meta.env.VITE_WS_URL);
+
+  socket.addEventListener("message", event => {
+    const msg = JSON.parse(event.data);
+    if (msg.type === "products:changed") {
+      reload(); // Reutilizamos el fetch para obtener datos actualizados
+    }
+  });
+
+  return () => socket.close();
+}, [reload]);`}</pre>
+ <p>Este enfoque es <strong>híbrido</strong>: HTTP trae el catálogo completo y WebSocket notifica cuándo hay cambios. Es más sencillo y seguro de explicar que reemplazar todo el flujo de productos por mensajes WebSocket. Si se quisiera eliminar también el fetch, el servidor debería responder con un mensaje de tipo products:snapshot y enviar todos los datos por el socket.</p>
+ <h3>3. Qué tendría que hacer el servidor</h3>
+ <pre className="study-code">{`// Pseudocódigo ilustrativo del backend
+// 1. El administrador actualiza un producto mediante PUT /api/products/:id
+await actualizarProductoEnPostgres(id, datos);
+
+// 2. Después de guardar el cambio, el servidor WebSocket
+// notifica a todos los clientes conectados:
+broadcast(JSON.stringify({
+  type: "products:changed",
+  productId: id
+}));`}</pre>
+ <p><strong>Ojo con Vercel:</strong> la API actual corre en funciones serverless y no ofrece un proceso WebSocket persistente. Para hacerlo funcionar en producción hace falta un servidor WebSocket separado o un proveedor de tiempo real. También hay que gestionar reconexiones, permisos y la entrega de eventos. El ejemplo anterior es material de estudio, no una función activa del ecommerce.</p>
+ <h3>4. Ejemplo para la defensa oral</h3>
+ <blockquote>«En nuestro ecommerce, el catálogo se carga mediante fetch y una petición GET. Si queremos agregar tiempo real, podemos mantener un WebSocket abierto. Cuando el administrador cambia el stock, el servidor manda una notificación y React vuelve a cargar los productos. Así combinamos HTTP para consultar los datos y WebSocket para avisar los cambios sin que el usuario tenga que refrescar la página».</blockquote>
+ <p><strong>Diferencia clave:</strong> fetch sigue siendo ideal para login, compras y consultas puntuales. WebSocket tiene sentido cuando hay cambios que deben llegar espontáneamente a varios clientes, como stock, notificaciones o seguimiento de pedidos.</p>
+ </div>
  <h3>Ejemplo completo: confirmar un pedido</h3>
  <ol className="study-steps"><li>El usuario selecciona productos en React; StoreContext mantiene el carrito.</li><li>Al confirmar, Cart.jsx llama a ordersApi.create con un token y los IDs/cantidades.</li><li>La función API valida la identidad y comprueba los datos y el stock.</li><li>El backend consulta PostgreSQL y registra el pedido en orders junto a sus elementos en order_items.</li><li>La API devuelve JSON con el número de pedido y el total; React muestra la confirmación y vacía el carrito local.</li><li>El perfil recupera los pedidos desde GET /api/orders para mostrarlos en Mis Compras e Historial.</li></ol>
  </section>}
