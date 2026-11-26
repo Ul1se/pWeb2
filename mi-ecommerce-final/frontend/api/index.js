@@ -3,6 +3,17 @@ import { randomBytes, pbkdf2Sync, timingSafeEqual, createHmac } from "node:crypt
 
 const sql = neon(process.env.DATABASE_URL);
 const secret = process.env.SESSION_SECRET;
+async function notifyProductChanged(productId){
+ const url=process.env.REALTIME_PUBLISH_URL, key=process.env.REALTIME_SECRET;
+ if(!url||!key)return;
+ const body=JSON.stringify({type:"products:changed",productId});
+ const signature=createHmac("sha256",key).update(body).digest("hex");
+ try{
+  const response=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json","x-realtime-signature":signature},body,signal:AbortSignal.timeout(1500)});
+  if(!response.ok)console.warn("Realtime relay status",response.status);
+ }catch(error){console.warn("Realtime relay unavailable:",error?.message)}
+}
+
 const fail = (res,status,error) => res.status(status).json({error});
 const safeUser = u => ({id:u.id,name:u.name,email:u.email,role:u.role,avatar_url:u.avatar_url||null});
 const hash = p => {const salt=randomBytes(16).toString("hex");return salt+":"+pbkdf2Sync(p,salt,150000,32,"sha256").toString("hex");};
@@ -76,12 +87,12 @@ export default async function handler(req,res){
     if(route[0]==="orders"&&req.method==="GET"){const u=await getUser(req);if(!u)return fail(res,401,"Iniciá sesión.");return res.json(await sql`SELECT id,total,status,created_at FROM orders WHERE user_id=${u.id} ORDER BY created_at DESC LIMIT 50`);}
     if(route[0]==="products"&&["POST","PUT","DELETE"].includes(req.method)){
       const u=await getUser(req);if(!u||u.role!=="admin")return fail(res,403,"Acceso reservado al administrador.");
-      const id=Number(route[1]);if(req.method==="DELETE"){if(!Number.isInteger(id))return fail(res,400,"ID inválido.");await sql`DELETE FROM products WHERE id=${id}`;return res.json({ok:true});}
+      const id=Number(route[1]);if(req.method==="DELETE"){if(!Number.isInteger(id))return fail(res,400,"ID inválido.");await sql`DELETE FROM products WHERE id=${id}`;await notifyProductChanged(id);return res.json({ok:true});}
       const p=req.body||{};const name=String(p.name||"").trim(),price=Number(p.price),stock=Number(p.stock),category=Number(p.category_id);
       if(!name||name.length>180||!Number.isSafeInteger(price)||price<0||!Number.isSafeInteger(stock)||stock<0||!Number.isInteger(category))return fail(res,400,"Completá los datos del producto correctamente.");
       const description=String(p.description||"").slice(0,2000),emoji=p.emoji?String(p.emoji).slice(0,16):null,image=p.image?String(p.image).slice(0,1000):null,featured=Boolean(p.featured);
-      if(req.method==="POST"){const result=await sql`INSERT INTO products(name,description,price,stock,category_id,emoji,image,featured) VALUES(${name},${description},${price},${stock},${category},${emoji},${image},${featured}) RETURNING id`;return res.status(201).json(result[0]);}
-      if(!Number.isInteger(id))return fail(res,400,"ID inválido.");const rows=await sql`UPDATE products SET name=${name},description=${description},price=${price},stock=${stock},category_id=${category},emoji=${emoji},image=${image},featured=${featured} WHERE id=${id} RETURNING id`;return rows.length?res.json(rows[0]):fail(res,404,"Producto no encontrado.");
+      if(req.method==="POST"){const result=await sql`INSERT INTO products(name,description,price,stock,category_id,emoji,image,featured) VALUES(${name},${description},${price},${stock},${category},${emoji},${image},${featured}) RETURNING id`;await notifyProductChanged(result[0].id);return res.status(201).json(result[0]);}
+      if(!Number.isInteger(id))return fail(res,400,"ID inválido.");const rows=await sql`UPDATE products SET name=${name},description=${description},price=${price},stock=${stock},category_id=${category},emoji=${emoji},image=${image},featured=${featured} WHERE id=${id} RETURNING id`;if(rows.length)await notifyProductChanged(id);return rows.length?res.json(rows[0]):fail(res,404,"Producto no encontrado.");
     }
     return fail(res,404,"Ruta no encontrada.");
   }catch(error){console.error("API error",error?.message);if(error?.code==="23505")return fail(res,409,"Ese valor ya existe.");if(error?.code==="23503")return fail(res,409,"No se puede completar la operación con los datos actuales.");return fail(res,500,"Ocurrió un error al procesar la solicitud.");}
