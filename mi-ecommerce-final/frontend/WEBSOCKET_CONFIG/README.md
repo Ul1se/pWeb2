@@ -1,12 +1,14 @@
 # WEBSOCKET CONFIG — MiEcommerce
 
-> **Esta carpeta identifica toda la funcionalidad de tiempo real del proyecto.** Es una guía de configuración y mapa de archivos, no un segundo servidor ni una copia del código. Los archivos ejecutables permanecen en sus ubicaciones originales para no romper imports ni el despliegue.
+> **Esta carpeta identifica toda la funcionalidad de tiempo real del proyecto.** La implementación de cliente y publicación está en [websocket/](../websocket/README.md); el servidor permanece en realtime/ para mantener su despliegue independiente.
 
 ## Archivos que pertenecen a WebSocket
 
 | Archivo real | Rol |
 | --- | --- |
-| [`src/hooks/useProducts.js`](../src/hooks/useProducts.js) | Frontend: abre `new WebSocket(VITE_WS_URL)`, escucha `products:changed`, reintenta la conexión y llama a `reload()` |
+| [`websocket/useWebSocket.js`](../websocket/useWebSocket.js) | Cliente WebSocket: conecta, escucha eventos y reintenta. |
+| [`websocket/publish.js`](../websocket/publish.js) | Publica eventos firmados desde la API al relay. |
+| [`src/hooks/useProducts.js`](../src/hooks/useProducts.js) | Integra el hook WebSocket y actualiza el catálogo mediante HTTP. |
 | [`src/services/api.js`](../src/services/api.js) | Frontend: `productsApi.all()` recupera el catálogo con `fetch('/api/products')` |
 | [`api/index.js`](../api/index.js) | Backend HTTP: guarda altas, ediciones y bajas de productos en PostgreSQL; llama a `notifyProductChanged(id)` |
 | [`realtime/server.js`](../realtime/server.js) | Servidor Node.js + `ws` en Render: acepta conexiones `/ws`, recibe `POST /publish` firmado y distribuye avisos |
