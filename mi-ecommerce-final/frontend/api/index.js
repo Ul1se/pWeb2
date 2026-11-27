@@ -3,16 +3,8 @@ import { randomBytes, pbkdf2Sync, timingSafeEqual, createHmac } from "node:crypt
 
 const sql = neon(process.env.DATABASE_URL);
 const secret = process.env.SESSION_SECRET;
-async function notifyProductChanged(productId){
- const url=process.env.REALTIME_PUBLISH_URL, key=process.env.REALTIME_SECRET;
- if(!url||!key)return;
- const body=JSON.stringify({type:"products:changed",productId});
- const signature=createHmac("sha256",key).update(body).digest("hex");
- try{
-  const response=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json","x-realtime-signature":signature},body,signal:AbortSignal.timeout(1500)});
-  if(!response.ok)console.warn("Realtime relay status",response.status);
- }catch(error){console.warn("Realtime relay unavailable:",error?.message)}
-}
+import {notifyProductChanged} from "../websocket/publish.js";
+
 
 const fail = (res,status,error) => res.status(status).json({error});
 const safeUser = u => ({id:u.id,name:u.name,email:u.email,role:u.role,avatar_url:u.avatar_url||null});
